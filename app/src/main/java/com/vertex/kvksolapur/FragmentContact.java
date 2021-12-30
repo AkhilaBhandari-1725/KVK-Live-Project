@@ -1,0 +1,97 @@
+package com.vertex.kvksolapur;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class FragmentContact extends Fragment {
+
+    ImageView img;
+    TextView email,contact,address;
+    String url= config.url;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_contact, container, false);
+
+        // get the reference of Button
+        img = view.findViewById(R.id.img_vw_one);
+        email = view.findViewById(R.id.txt_email);
+        contact = view.findViewById(R.id.txt_contact);
+        address = view.findViewById(R.id.txt_address);
+
+        final Context context=getActivity().getApplicationContext();
+        RequestQueue req= Volley.newRequestQueue(context);
+
+        JsonArrayRequest jar=new JsonArrayRequest(url+"fetchKvkContact.php", new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+
+                try {
+
+                    JSONObject job = response.getJSONObject(0);
+
+                    Toast.makeText(context,"contact called",Toast.LENGTH_LONG).show();
+
+
+                    for(int i=1;i<response.length();i++){
+
+                        JSONObject temp=response.getJSONObject(i);
+
+                        String image=temp.getString("Image");
+                        String semail=temp.getString("Email");
+                        String scontact=temp.getString("Mobile");
+                        String saddress=temp.getString("Address");
+
+                        email.setText(semail);
+                        contact.setText(scontact);
+                        address.setText(saddress);
+
+                        String imageUri=url+image;
+
+                        Toast.makeText(context,imageUri+""+semail+""+scontact+""+saddress,Toast.LENGTH_LONG).show();
+
+                         Picasso.with(context).load(imageUri).fit().centerCrop().into(img);
+
+                    }
+
+                }
+                catch (JSONException e){
+
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(context,error.getMessage(),Toast.LENGTH_LONG).show();
+            }
+        });
+
+        req.add(jar);
+
+        return view;
+    }
+}
